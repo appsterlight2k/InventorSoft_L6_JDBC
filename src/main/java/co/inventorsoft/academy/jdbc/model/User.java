@@ -1,0 +1,117 @@
+package co.inventorsoft.academy.jdbc.model;
+
+import java.util.Objects;
+
+public class User {
+    private Long id;
+    private String firstname;
+    private String lastname;
+    private String phone;
+    private String email;
+    private String password;
+    private String description;
+
+    public User() {
+    }
+
+    public User(Long id, String firstname, String lastname, String phone, String email, String password, String description) {
+        this.id = id;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.phone = phone;
+        this.email = email;
+        this.password = password;
+        this.description = description;
+    }
+
+    public User(String firstname, String lastname, String phone, String email, String password, String description) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.phone = phone;
+        this.email = email;
+        this.password = password;
+        this.description = description;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getFirstname() {
+        return firstname;
+    }
+
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
+
+    public String getLastname() {
+        return lastname;
+    }
+
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) && Objects.equals(firstname, user.firstname) && Objects.equals(lastname, user.lastname) && Objects.equals(phone, user.phone) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(description, user.description);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, firstname, lastname, phone, email, password, description);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", firstname='" + firstname + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", description='" + description + '\'' +
+                '}';
+    }
+}

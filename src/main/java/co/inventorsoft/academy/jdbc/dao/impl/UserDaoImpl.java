@@ -1,121 +1,70 @@
 package co.inventorsoft.academy.jdbc.dao.impl;
 
+import co.inventorsoft.academy.jdbc.dao.AbstractDao;
 import co.inventorsoft.academy.jdbc.dao.UserDao;
 import co.inventorsoft.academy.jdbc.dao.constants.Field;
-import co.inventorsoft.academy.jdbc.dao.utils.QueryUtil;
 import co.inventorsoft.academy.jdbc.exception.DaoException;
 import co.inventorsoft.academy.jdbc.model.User;
-import co.inventorsoft.academy.jdbc.util.ConnectionUtil;
+import co.inventorsoft.academy.jdbc.connection.ConnectionManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static co.inventorsoft.academy.jdbc.dao.constants.Query.*;
 
-public class UserDaoImpl implements UserDao {
+public class UserDaoImpl extends AbstractDao<User> implements UserDao {
+    @Override
+    public String getSelectQuery() {
+        return SQL_USER_GET;
+    }
 
     @Override
-    public Long add(User user) throws DaoException {
-        long result = -1;
+    public String getCreateQuery() {
+        return SQL_USER_CREATE;
+    }
 
-        try (Connection connection = ConnectionUtil.getConnection();
-             PreparedStatement prst = QueryUtil.prepareStatement(connection, SQL_USER_CREATE,true,
-                     QueryUtil.getFieldsForStatement(getAllFieldsOfObject(user), false))) {
-            if (prst.executeUpdate() > 0) {
-                ResultSet rs = prst.getGeneratedKeys();
+    @Override
+    public String getUpdateQuery() {
+        return SQL_USER_UPDATE;
+    }
+
+    @Override
+    public String getSelectAllQuery() {
+        return SQL_USER_GET_ALL;
+    }
+
+    @Override
+    public String getDeleteQuery() {
+        return SQL_USER_DELETE;
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) throws DaoException {
+        User user = null;
+        try (Connection con = ConnectionManager.getConnection();
+            PreparedStatement prst = con.prepareStatement(SQL_USER_GET_BY_EMAIL); ) {
+            prst.setString(1, email);
+            try (ResultSet rs = prst.executeQuery();) {
                 if (rs.next()) {
-                    result = rs.getLong(1);
+                    user = mapEntity(rs);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DaoException(e);
+            throw new DaoException(String.format("Error finding user with email %s", email));
         }
 
-        return result;
-
-    }
-
-    @Override
-    public Optional<User> get(Long id) throws DaoException {
-        User user = null;
-
-        try (Connection connection = ConnectionUtil.getConnection();
-             PreparedStatement prst = connection.prepareStatement(SQL_USER_GET)) {
-            prst.setLong(1, id);
-            ResultSet rs = prst.executeQuery();
-            if (rs.next()) {
-                user = mapEntity(rs);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DaoException(e);
-        }
         return Optional.ofNullable(user);
-
-    }
-
-    @Override
-    public boolean update(User user) throws DaoException {
-        boolean result;
-
-        try (Connection connection = ConnectionUtil.getConnection();
-             PreparedStatement prst = QueryUtil.prepareStatement(connection, SQL_USER_UPDATE,
-                     false, QueryUtil.getFieldsForStatement(getAllFieldsOfObject(user), true)) )  {
-            result = prst.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DaoException(e);
-        }
-
-        return result;
-
-    }
-
-    @Override
-    public boolean delete(Long id) throws DaoException {
-        boolean result;
-
-        try (Connection connection = ConnectionUtil.getConnection();
-             PreparedStatement prst = connection.prepareStatement(SQL_USER_DELETE)) {
-            prst.setLong(1, id);
-            result = prst.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DaoException(e);
-        }
-
-        return result;
-    }
-
-    @Override
-    public List<User> getAll() throws DaoException {
-        List<User> users = new ArrayList<>();
-
-        try (Connection con = ConnectionUtil.getConnection();
-             Statement st = con.createStatement();) {
-
-            ResultSet rs = st.executeQuery(SQL_USER_GET_ALL);
-            while (rs.next()) {
-                users.add(mapEntity(rs));
-            }
-        } catch (SQLException e) {
-            throw new DaoException(e);
-        }
-
-        return users;
     }
 
     protected User mapEntity(ResultSet rs) throws DaoException {
         try {
             User user = new User();
-            user.setId(rs.getLong(Field.USER_ID));
+            user.setId(rs.getLong(Field.ID));
             user.setFirstname(rs.getString(Field.USER_FIRST_NAME));
             user.setLastname(rs.getString(Field.USER_LAST_NAME));
             user.setPhone(rs.getString(Field.USER_PHONE));
@@ -125,27 +74,29 @@ public class UserDaoImpl implements UserDao {
 
             return user;
         } catch (SQLException e) {
-            throw new DaoException(e);
+            throw new DaoException("Error of ResultSet processing! " + e);
         }
     }
 
-    protected Object[] getAllFieldsOfObject(User user) throws DaoException {
-        try {
-            return new Object[]{
-                    user.getFirstname(),
-                    user.getLastname(),
-                    user.getPhone(),
-                    user.getEmail(),
-                    user.getPassword(),
-                    user.getDescription(),
-                    user.getId(),
-            };
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+    protected List<Object> getEntityFields(User user) throws DaoException {
+        if (user == null) {
             throw new DaoException("User object is null! Can't get fields!");
         }
+
+        List<Object> list = new ArrayList<>();
+        list.add(user.getFirstname());
+        list.add(user.getLastname());
+        list.add(user.getPhone());
+        list.add(user.getEmail());
+        list.add(user.getPassword());
+        list.add(user.getDescription());
+
+        Long id = user.getId();
+        if (id != null) { // id == null in case of insert operation
+            list.add(id);
+        }
+
+        return list;
     }
-
-
 
 }

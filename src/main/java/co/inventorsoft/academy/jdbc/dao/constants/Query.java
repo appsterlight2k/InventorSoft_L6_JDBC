@@ -8,6 +8,7 @@ public final class Query {
             "VALUES (?, ?, ?, ?, ?, ?)";
     public static final String SQL_USER_GET_ALL = "SELECT * FROM users";
     public static final String SQL_USER_GET = "SELECT * FROM users WHERE id = ?";
+    public static final String SQL_USER_GET_BY_EMAIL = "SELECT * FROM users WHERE name = ?";
     public static final String SQL_USER_UPDATE =
             "UPDATE users SET firstname = ?, lastname = ?, phone = ?, email = ?, password = ?, description = ? WHERE ID = ?";
 

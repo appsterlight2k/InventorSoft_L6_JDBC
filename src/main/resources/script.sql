@@ -19,7 +19,7 @@ CREATE TABLE users (
 	firstname VARCHAR(500) NOT NULL,
 	lastname VARCHAR(500) NOT NULL,
 	phone VARCHAR(100),
-	email VARCHAR(100) NOT NULL,
+	email VARCHAR(100) NOT NULL UNIQUE,
 	password VARCHAR(500) NOT NULL,
 	description VARCHAR(5000)
 );

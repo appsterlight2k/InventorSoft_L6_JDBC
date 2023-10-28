@@ -1,4 +1,4 @@
-package co.inventorsoft.academy.jdbc.util;
+package co.inventorsoft.academy.jdbc.connection;
 
 import co.inventorsoft.academy.jdbc.exception.PropertiesException;
 
@@ -9,17 +9,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class ConnectionUtil {
+public class ConnectionManager {
     private static final String APP_SETTINGS_FILE = "application.properties";
 
-    static {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
+    private ConnectionManager() { }
 
     public static Connection getConnection() {
         try {
@@ -28,9 +21,11 @@ public class ConnectionUtil {
 
             return DriverManager.getConnection(url, props);
         } catch (SQLException e) {
+            //log
             e.printStackTrace();
             throw new RuntimeException(e);
         } catch (PropertiesException e) {
+            //log
             e.printStackTrace();
             throw new RuntimeException(e);
         }

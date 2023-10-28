@@ -1,121 +1,48 @@
 package co.inventorsoft.academy.jdbc.dao.impl;
 
+import co.inventorsoft.academy.jdbc.dao.AbstractDao;
 import co.inventorsoft.academy.jdbc.dao.CompanyDao;
 import co.inventorsoft.academy.jdbc.dao.constants.Field;
-import co.inventorsoft.academy.jdbc.dao.utils.QueryUtil;
 import co.inventorsoft.academy.jdbc.exception.DaoException;
 import co.inventorsoft.academy.jdbc.model.Company;
-import co.inventorsoft.academy.jdbc.util.ConnectionUtil;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static co.inventorsoft.academy.jdbc.dao.constants.Query.*;
 
-public class CompanyDaoImpl implements CompanyDao {
-
+public class CompanyDaoImpl extends AbstractDao<Company> implements CompanyDao {
     @Override
-    public Long add(Company company) throws DaoException {
-        long result = -1;
-
-        try (Connection connection = ConnectionUtil.getConnection();
-             PreparedStatement prst = QueryUtil.prepareStatement(connection, SQL_COMPANY_CREATE,true,
-                     QueryUtil.getFieldsForStatement(getAllFieldsOfObject(company), false))) {
-            if (prst.executeUpdate() > 0) {
-                ResultSet rs = prst.getGeneratedKeys();
-                if (rs.next()) {
-                    result = rs.getLong(1);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DaoException(e);
-        }
-
-        return result;
-
+    public String getSelectQuery() {
+        return SQL_COMPANY_GET;
     }
 
     @Override
-    public Optional<Company> get(Long id) throws DaoException {
-        Company company = null;
-
-        try (Connection connection = ConnectionUtil.getConnection();
-             PreparedStatement prst = connection.prepareStatement(SQL_COMPANY_GET)) {
-            prst.setLong(1, id);
-            ResultSet rs = prst.executeQuery();
-            if (rs.next()) {
-                company = mapEntity(rs);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DaoException(e);
-        }
-        return Optional.ofNullable(company);
-
+    public String getCreateQuery() {
+        return SQL_COMPANY_CREATE;
     }
 
     @Override
-    public boolean update(Company company) throws DaoException {
-        boolean result;
-
-        try (Connection connection = ConnectionUtil.getConnection();
-             PreparedStatement prst = QueryUtil.prepareStatement(connection, SQL_COMPANY_UPDATE,
-                     false, QueryUtil.getFieldsForStatement(getAllFieldsOfObject(company), true)))  {
-            result = prst.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DaoException(e);
-        }
-
-        return result;
-
+    public String getUpdateQuery() {
+        return SQL_COMPANY_UPDATE;
     }
 
     @Override
-    public boolean delete(Long id) throws DaoException {
-        boolean result;
-
-        try (Connection connection = ConnectionUtil.getConnection();
-             PreparedStatement prst = connection.prepareStatement(SQL_COMPANY_DELETE)) {
-            prst.setLong(1, id);
-            result = prst.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DaoException(e);
-        }
-
-        return result;
+    public String getSelectAllQuery() {
+        return SQL_COMPANY_GET_ALL;
     }
 
     @Override
-    public List<Company> getAll() throws DaoException {
-        List<Company> companies = new ArrayList<>();
-
-        try (Connection con = ConnectionUtil.getConnection();
-             Statement st = con.createStatement();) {
-
-            ResultSet rs = st.executeQuery(SQL_COMPANY_GET_ALL);
-            while (rs.next()) {
-                companies.add(mapEntity(rs));
-            }
-        } catch (SQLException e) {
-            throw new DaoException(e);
-        }
-
-        return companies;
+    public String getDeleteQuery() {
+        return SQL_COMPANY_DELETE;
     }
 
     protected Company mapEntity(ResultSet rs) throws DaoException {
         try {
             Company company = new Company();
-            company.setId(rs.getLong(Field.COMPANY_ID));
+            company.setId(rs.getLong(Field.ID));
             company.setCompanyName(rs.getString(Field.COMPANY_NAME));
             company.setPhone(rs.getString(Field.COMPANY_PHONE));
             company.setAddress(rs.getString(Field.COMPANY_ADDRESS));
@@ -126,26 +53,31 @@ public class CompanyDaoImpl implements CompanyDao {
 
             return company;
         } catch (SQLException e) {
-            throw new DaoException(e);
+            throw new DaoException("Error of ResultSet processing! " + e);
         }
     }
 
-    protected Object[] getAllFieldsOfObject(Company company) throws DaoException {
-        try {
-            return new Object[]{
-                    company.getCompanyName(),
-                    company.getPhone(),
-                    company.getAddress(),
-                    company.getCity(),
-                    company.getRegion(),
-                    company.getZip(),
-                    company.getCountry(),
-                    company.getId(),
-            };
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+    @Override
+    protected List<Object> getEntityFields(Company entity) throws DaoException {
+        if (entity == null) {
             throw new DaoException("Company object is null! Can't get fields!");
         }
+
+        List<Object> list = new ArrayList<>();
+        list.add(entity.getCompanyName());
+        list.add(entity.getPhone());
+        list.add(entity.getAddress());
+        list.add(entity.getCity());
+        list.add(entity.getRegion());
+        list.add(entity.getZip());
+        list.add(entity.getCountry());
+
+        Long id = entity.getId();
+        if (id != null) { // id == null in case of insert operation
+            list.add(id);
+        }
+
+        return list;
     }
 
 }
